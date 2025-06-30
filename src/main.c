@@ -52,11 +52,14 @@ int main(int argc, char *argv[]) {
         if(strcmp(inpt->content, ".exit") == 0)
         {
             printf("Exiting...");
+            free(inpt);
             return EXIT_SUCCESS;
         }
         else{
             printf("Command does not exist: %s\n", inpt->content);
         }
+
+        free(inpt);
     }
 
     return EXIT_SUCCESS;
