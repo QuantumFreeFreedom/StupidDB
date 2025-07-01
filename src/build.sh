@@ -1,0 +1,1 @@
+gcc -Iinclude ./*.c -o ../build/StupidDB.exe
