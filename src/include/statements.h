@@ -10,6 +10,7 @@ typedef enum{
     STMT_SELECT,
     STMT_CREATE,
     STMT_DELETE,
+    STMT_DROP,
     STMT_INVALID // used when a valid statement wasn't detected
 } StatementType;
 

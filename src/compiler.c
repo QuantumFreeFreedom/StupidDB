@@ -48,11 +48,21 @@ StatementType getStmtType(char* stmt, size_t* pos, size_t length)
     
     do {
         firstToken[firstTokenlen] = stmt[*pos];
-
-        if(firstTokenlen == 3 && strcmp(firstToken, "DROP") != 0)
+        
+        // Resize firstToken if the first token isn't DROP
+        if(firstTokenlen == maxTokenLen - 1)
         {
-            maxTokenLen = 7;
-            firstToken = realloc(firstToken, maxTokenLen*sizeof(char));
+            maxTokenLen++;
+            char* tmp = realloc(firstToken, maxTokenLen*sizeof(char));
+            
+            if(tmp == NULL)
+            {
+                printf("Failed to realloc the firstToken on compiler.c. \n");
+                free(firstToken);
+                return STMT_INVALID;
+            }
+
+            firstToken = tmp;
         }
 
         if(*pos+1 == length) // prevent accessing out of bounds
@@ -72,9 +82,37 @@ StatementType getStmtType(char* stmt, size_t* pos, size_t length)
 
     firstToken[++firstTokenlen] = '\0';
 
+    if(strcmp(firstToken, "DROP") == 0)
+    {
+        free(firstToken);
+        return STMT_DROP;
+    }
 
+    if(strcmp(firstToken, "SELECT") == 0)
+    {
+        free(firstToken);
+        return STMT_SELECT;
+    }
 
-    return stmtType;
+    if(strcmp(firstToken, "CREATE") == 0)
+    {
+        free(firstToken);
+        return STMT_CREATE;
+    }
+
+    if(strcmp(firstToken, "INSERT") == 0)
+    {
+        free(firstToken);
+        return STMT_INSERT;
+    }
+
+    if(strcmp(firstToken, "DELETE") == 0)
+    {
+        free(firstToken);
+        return STMT_DELETE;
+    }
+
+    return STMT_INVALID;
 }
 
 CompilerReturn* prepare(Input* inpt)
@@ -90,14 +128,36 @@ CompilerReturn* prepare(Input* inpt)
     size_t pos = 0;
 
     stmt->type = getStmtType(inpt->content, &pos, inpt->length);
-    /*
-    while(pos != inpt->length-1)
+    
+
+    // Here we see why the void pointer comes in handy
+    switch(stmt->type)
     {
-        if(pos == 0)
-        {
-            stmt->type = getStmtType(inpt->content, &pos, inpt->length);
-        }
-    }*/
+        case STMT_DROP:
+        stmt->stmt_data = malloc(sizeof(DropSTMT));
+        break;
+
+        case STMT_SELECT:
+        stmt->stmt_data = malloc(sizeof(SelectSTMT));
+        break;
+
+        case STMT_CREATE:
+        stmt->stmt_data = malloc(sizeof(CreateSTMT));
+        break;
+
+        case STMT_INSERT:
+        stmt->stmt_data = malloc(sizeof(InsertSTMT));
+        break;
+
+        case STMT_DELETE:
+        stmt->stmt_data = malloc(sizeof(DeleteSTMT));
+        break;
+
+        case STMT_INVALID:
+        compRet->status = COMPILER_FALIURE;
+        compRet->prepared_stmt = stmt;
+        return compRet;
+    }
 
     return compRet;
 }
