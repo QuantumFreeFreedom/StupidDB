@@ -23,6 +23,23 @@ typedef enum {
     EQUAL // =
 } Operators;
 
+typedef struct{
+    char* tableReferenceName;
+} ForeignKeyData;
+
+typedef struct{
+    bool isPrimary;
+    bool allowsNull;
+    bool unique;
+    bool isForeignKey;
+    
+    char* colName;
+
+    VarTypes type;
+
+    ForeignKeyData* fk_data;
+} Columns;
+
 /**
  * I don't really care about allowing all the SQL functionality (I AM MAKING THIS FOR FUN)
  * so I will onlly allow WHERE conditions
@@ -49,8 +66,7 @@ typedef struct {
 typedef struct{
     size_t PK_index;
     char* tableName; //this simple database only has 1 db so I dont need to worry about the database name
-    char** colNames;
-    VarTypes* types;
+    Columns* cols;
 } CreateSTMT;
 
 /**
@@ -68,6 +84,13 @@ typedef struct {
     char** cols;
     char** vals;
 } InsertSTMT;
+
+/**
+ * *DROP STATEMENT
+ */
+typedef struct{
+    char* tableName; // again, this is a single database system.
+} DropSTMT;
 
 typedef struct{
     StatementType* type;

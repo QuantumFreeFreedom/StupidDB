@@ -28,7 +28,7 @@ Input* getInput()
         exit(EXIT_FAILURE);
     }
 
-    inpt->length = len;
+    inpt->length = read;
     inpt->content = text;
 
     return inpt;
