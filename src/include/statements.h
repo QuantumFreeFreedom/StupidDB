@@ -9,7 +9,8 @@ typedef enum{
     STMT_INSERT,
     STMT_SELECT,
     STMT_CREATE,
-    STMT_DELETE
+    STMT_DELETE,
+    STMT_INVALID // used when a valid statement wasn't detected
 } StatementType;
 
 typedef enum{
@@ -93,7 +94,7 @@ typedef struct{
 } DropSTMT;
 
 typedef struct{
-    StatementType* type;
+    StatementType type;
 
     // Since we will have different kinds of structs for
     // different statements I will have to use a void pointer

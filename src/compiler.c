@@ -38,6 +38,44 @@ CompilerStatus validateInputSimple(CompilerReturn* compRet, Input* inpt, Stateme
     return COMPILER_SUCCESS;
 }
 
+StatementType getStmtType(char* stmt, size_t* pos, size_t length)
+{
+    StatementType stmtType = STMT_INVALID;
+
+    unsigned short maxTokenLen = 5;
+    char* firstToken = malloc(maxTokenLen*sizeof(char)); // drop is 4 characters and we need a null terminator \0
+    unsigned short firstTokenlen = 0;
+    
+    do {
+        firstToken[firstTokenlen] = stmt[*pos];
+
+        if(firstTokenlen == 3 && strcmp(firstToken, "DROP") != 0)
+        {
+            maxTokenLen = 7;
+            firstToken = realloc(firstToken, maxTokenLen*sizeof(char));
+        }
+
+        if(*pos+1 == length) // prevent accessing out of bounds
+        {
+            return STMT_INVALID;
+        }
+
+        firstTokenlen++;
+        (*pos)++;
+
+        if(firstTokenlen == maxTokenLen)
+        {
+            return STMT_INVALID;
+        }
+        
+    }while (stmt[*pos] != ' ');
+
+    firstToken[++firstTokenlen] = '\0';
+
+
+
+    return stmtType;
+}
 
 CompilerReturn* prepare(Input* inpt)
 {
@@ -51,10 +89,15 @@ CompilerReturn* prepare(Input* inpt)
 
     size_t pos = 0;
 
+    stmt->type = getStmtType(inpt->content, &pos, inpt->length);
+    /*
     while(pos != inpt->length-1)
     {
-
-    }
+        if(pos == 0)
+        {
+            stmt->type = getStmtType(inpt->content, &pos, inpt->length);
+        }
+    }*/
 
     return compRet;
 }
