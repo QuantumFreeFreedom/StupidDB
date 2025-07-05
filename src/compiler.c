@@ -115,6 +115,30 @@ StatementType getStmtType(char* stmt, size_t* pos, size_t length)
     return STMT_INVALID;
 }
 
+CompilerStatus ConstructDrop(CompilerReturn* compRet, Statement* stmt, size_t* pos, Input* inpt)
+{
+    
+    while(inpt->content[*pos] != ';' && *pos != inpt->length-1)
+    {
+
+    }
+
+    return COMPILER_SUCCESS;
+}
+
+void skipSpaces(char* text, size_t *pos, size_t length)
+{
+    if(*pos == length - 1)
+    {
+        return;
+    }
+
+    while(text[*pos] == ' ' && *pos != length - 1)
+    {
+        (*pos)++;
+    }
+}
+
 CompilerReturn* prepare(Input* inpt)
 {
     CompilerReturn* compRet = malloc(sizeof(CompilerReturn));
@@ -127,8 +151,10 @@ CompilerReturn* prepare(Input* inpt)
 
     size_t pos = 0;
 
+    skipSpaces(inpt->content, &pos, inpt->length);
     stmt->type = getStmtType(inpt->content, &pos, inpt->length);
-    
+
+    skipSpaces(inpt->content, &pos, inpt->length);
 
     // Here we see why the void pointer comes in handy
     switch(stmt->type)
