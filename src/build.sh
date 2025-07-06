@@ -1,1 +1,1 @@
-gcc -Iinclude ./*.c -o ../build/StupidDB.exe
+gcc -Wall -Iinclude ./*.c -o ../build/StupidDB.exe

@@ -15,7 +15,6 @@ int main(int argc, char *argv[]) {
     {
         printf("StupidDB > ");
         Input* inpt = getInput();
-
         if(inpt->content[0] == '.')
         {
             meta_init(inpt);

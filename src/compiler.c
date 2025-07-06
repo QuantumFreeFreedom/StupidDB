@@ -40,8 +40,6 @@ CompilerStatus validateInputSimple(CompilerReturn* compRet, Input* inpt, Stateme
 
 StatementType getStmtType(char* stmt, size_t* pos, size_t length)
 {
-    StatementType stmtType = STMT_INVALID;
-
     unsigned short maxTokenLen = 5;
     char* firstToken = malloc(maxTokenLen*sizeof(char)); // drop is 4 characters and we need a null terminator \0
     unsigned short firstTokenlen = 0;
@@ -52,7 +50,7 @@ StatementType getStmtType(char* stmt, size_t* pos, size_t length)
         // Resize firstToken if the first token isn't DROP
         if(firstTokenlen == maxTokenLen - 1)
         {
-            maxTokenLen++;
+            maxTokenLen = 7;
             char* tmp = realloc(firstToken, maxTokenLen*sizeof(char));
             
             if(tmp == NULL)
@@ -67,6 +65,7 @@ StatementType getStmtType(char* stmt, size_t* pos, size_t length)
 
         if(*pos+1 == length) // prevent accessing out of bounds
         {
+            free(firstToken);
             return STMT_INVALID;
         }
 
@@ -75,6 +74,7 @@ StatementType getStmtType(char* stmt, size_t* pos, size_t length)
 
         if(firstTokenlen == maxTokenLen)
         {
+            free(firstToken);
             return STMT_INVALID;
         }
         
@@ -112,18 +112,8 @@ StatementType getStmtType(char* stmt, size_t* pos, size_t length)
         return STMT_DELETE;
     }
 
+    free(firstToken);
     return STMT_INVALID;
-}
-
-CompilerStatus ConstructDrop(CompilerReturn* compRet, Statement* stmt, size_t* pos, Input* inpt)
-{
-    
-    while(inpt->content[*pos] != ';' && *pos != inpt->length-1)
-    {
-
-    }
-
-    return COMPILER_SUCCESS;
 }
 
 void skipSpaces(char* text, size_t *pos, size_t length)
@@ -137,6 +127,54 @@ void skipSpaces(char* text, size_t *pos, size_t length)
     {
         (*pos)++;
     }
+}
+
+CompilerStatus ConstructDrop(Statement* stmt, size_t* pos, Input* inpt)
+{
+    int tableNameLen = 11;
+    int tbNamePos = 0;
+    char* tableName = malloc(tableNameLen*sizeof(char));
+
+    while(inpt->content[*pos] != ';' && *pos != inpt->length-1)
+    {
+        if(tbNamePos == tableNameLen - 1)
+        {
+            tableNameLen += 10;
+            char* tmp = realloc(tableName, tableNameLen*sizeof(char));
+
+            if(tmp == NULL)
+            {
+                free(tmp);
+                printf("failed to realloc tableName on ConstructDrop");
+                return COMPILER_FALIURE;
+            }
+
+            tableName = tmp;
+        }
+
+        if(inpt->content[*pos] == ' ') // Make sure only one table name was meantioned
+        {
+            skipSpaces(inpt->content, pos, inpt->length);
+
+            if(inpt->content[*pos] != ';')
+            {
+                printf("Please only include one table when dropping");
+                return COMPILER_FALIURE;
+            }
+
+            break;
+        }
+        tableName[tbNamePos] = inpt->content[*pos];
+        tbNamePos++;
+        (*pos)++;
+    }
+
+    tableName[tableNameLen] = '\0';
+
+    DropSTMT* drop = (DropSTMT*)stmt->stmt_data;
+    drop->tableName = tableName;
+
+    return COMPILER_SUCCESS;
 }
 
 CompilerReturn* prepare(Input* inpt)
@@ -161,6 +199,8 @@ CompilerReturn* prepare(Input* inpt)
     {
         case STMT_DROP:
         stmt->stmt_data = malloc(sizeof(DropSTMT));
+        compRet->status = ConstructDrop(stmt, &pos, inpt);
+        compRet->prepared_stmt = stmt;
         break;
 
         case STMT_SELECT:
